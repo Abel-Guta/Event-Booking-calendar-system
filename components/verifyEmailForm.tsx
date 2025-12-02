@@ -34,6 +34,8 @@ import { Input } from "@/components/ui/input";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { verifyOtp } from "@/lib/helpers/auth-helpers";
+import { toast } from "sonner";
+import { createClient } from "@/utils/supabase/client";
 
 const VerifyEmailForm = () => {
   const [email, setEmail] = useState<string>();
@@ -44,25 +46,28 @@ const VerifyEmailForm = () => {
   const router = useRouter();
   useEffect(() => {
     const storedEmail = sessionStorage.getItem("verification-email");
+    const storedresetflag = sessionStorage.getItem("isPasswordReset");
+
+    setIsPasswordReset(storedresetflag === "true");
 
     if (!storedEmail) {
-      router.push("/SignUp");
+      router.push("/signUp");
+      return;
     }
 
-    setEmail(storedEmail!);
+    setEmail(storedEmail);
+    form.setValue("email", storedEmail);
+  }, []);
 
-    const passwordResetFlag = sessionStorage.getItem("isPasswordReset");
-
-    setIsPasswordReset(passwordResetFlag === "true");
-  }, [router]);
-
-  const form = useForm<z.infer<typeof verifyFormSchema>>({
+  const form = useForm({
     resolver: zodResolver(verifyFormSchema),
     defaultValues: {
-      email: email,
+      email: "",
       code: "",
     },
   });
+
+  console.log(isPasswordReset);
 
   async function onSubmit(values: z.infer<typeof verifyFormSchema>) {
     setLoading(true);
@@ -71,9 +76,20 @@ const VerifyEmailForm = () => {
       sessionStorage.removeItem("verification-email");
 
       if (isPasswordReset) {
+        toast.success("Email verified! Please set your new password.");
         router.push("/newPassword");
       } else {
         sessionStorage.removeItem("isPasswordReset");
+
+        const supabase = createClient();
+        const { error } = await supabase.from("Users").insert({
+          email: values.email,
+          name: sessionStorage.getItem("userName"),
+        });
+        if (error) {
+          throw new Error(error.message);
+          return;
+        }
 
         await fetch("/api/resend", {
           method: "POST",
@@ -86,14 +102,16 @@ const VerifyEmailForm = () => {
             name: sessionStorage.getItem("userName") || "User",
           }),
         });
-        // delete usename from session storage and newpassword page is protected by middleware  continue from here
+        sessionStorage.removeItem("userName");
+        toast.success("Email verified successfully!");
 
         router.push("/");
       }
-    } catch (error) {
+    } catch (err) {
       setError(
-        error instanceof Error ? error.message : "An unexpected error occurred"
+        err instanceof Error ? err.message : "An unexpected error occurred"
       );
+      toast.error(error);
     } finally {
       setLoading(false);
     }
@@ -134,8 +152,6 @@ const VerifyEmailForm = () => {
                         placeholder="you@example.com"
                         type="email"
                         value={field.value}
-                        onChange={field.onChange}
-                        defaultValue={email}
                         readOnly
                         className="h-10 transition duration-300 focus-visible:border-amber-500 focus-visible:ring-amber-500/50"
                       />
@@ -153,7 +169,7 @@ const VerifyEmailForm = () => {
                     <FormLabel>One-Time Password</FormLabel>
                     <FormControl>
                       <InputOTP
-                        maxLength={6}
+                        maxLength={8}
                         value={field.value}
                         onChange={field.onChange}
                       >
@@ -187,7 +203,7 @@ const VerifyEmailForm = () => {
                             className="rounded-sm size-9"
                           />
                           <InputOTPSlot
-                            index={6}
+                            index={7}
                             className="rounded-sm size-9"
                           />
                         </InputOTPGroup>
@@ -205,7 +221,13 @@ const VerifyEmailForm = () => {
                 type="submit"
                 className="w-full h-10 tracking-wide font-semibold text-lg hover:shadow-lg transition-all duration-300"
               >
-                {isPasswordReset ? "Verify & Reset Password" : "Verify Email"}
+                {isPasswordReset
+                  ? loading
+                    ? "Verifying..."
+                    : "Verify & Reset Password"
+                  : loading
+                    ? "Verifying..."
+                    : "Verify Email"}
               </Button>
             </form>
           </Form>

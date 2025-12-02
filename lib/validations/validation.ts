@@ -44,3 +44,18 @@ export const verifyFormSchema = z.object({
     .min(8, { message: "Code must be at least 8 characters" })
     .max(8, { message: "Code must be at most 8 characters." }),
 });
+export const resetFormSchema = z.object({
+  email: z
+    .string()
+    .email({ message: "Please enter a valid email address." })
+    .trim()
+    .min(1, { message: "Email is required." })
+    .toLowerCase(),
+});
+export const newPasswordFormSchema = z.object({
+  password: z
+    .string()
+    .trim()
+    .min(8, { message: "Password must be at least 8 characters" })
+    .max(100, { message: "Password must be at most 100 characters." }),
+});

@@ -120,3 +120,96 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Remove all grid/table borders */
+.fc-theme-standard td,
+.fc-theme-standard th,
+.fc-theme-standard .fc-scrollgrid,
+.fc-theme-standard .fc-scrollgrid td,
+.fc-theme-standard .fc-scrollgrid th {
+  border: none !important;
+}
+
+/* Remove outer border around the whole calendar */
+.fc {
+  border: none !important;
+}
+
+/* Remove week number / row separators */
+.fc-scrollgrid-section table {
+  border: none !important;
+}
+
+/* Remove border between header and grid */
+.fc .fc-scrollgrid {
+  border-top: none !important;
+}
+
+/* Remove horizontal line between rows */
+.fc-daygrid-body,
+.fc-daygrid-body table,
+.fc-daygrid-day {
+  border: none !important;
+}
+
+/* Removes line between day names (Sun, Mon...) */
+.fc-col-header-cell {
+  border: none !important;
+}
+
+.fc .fc-toolbar-title {
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+.fc-daygrid-day-frame {
+  padding: 8px !important;
+}
+
+.fc-daygrid-event {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+}
+
+/* Base button style */
+.fc .fc-button {
+  background: #e08f6d !important; /* Indigo */
+  border: none !important;
+  color: white !important;
+  padding: 6px 12px !important;
+  border-radius: 8px !important;
+  font-weight: 500 !important;
+  box-shadow: none !important;
+  transition: 0.2s ease-in-out;
+}
+
+/* Hover effect */
+.fc .fc-button:hover {
+  background: #fe9925 !important;
+}
+
+/* Active (pressed) */
+.fc .fc-button:active,
+.fc .fc-button.fc-button-active {
+  background: #d25020 !important;
+}
+
+/* Disabled buttons (e.g., "today" when already today) */
+.fc .fc-button:disabled {
+  background: #e5e7eb !important;
+  color: #9ca3af !important;
+}
+/* Add gap between FullCalendar header buttons */
+.fc-header-toolbar .fc-button {
+  margin-right: 8px !important;
+}
+
+/* Remove margin on the last button group so it's not too wide */
+.fc-header-toolbar .fc-button-group .fc-button:last-child {
+  margin-right: 0 !important;
+}
+:root .fc .fc-button {
+  color: white !important;
+  margin-right: 8px !important;
+}

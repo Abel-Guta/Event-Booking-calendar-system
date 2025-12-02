@@ -27,6 +27,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 const SignUpForm = () => {
   const router = useRouter();
@@ -64,9 +65,11 @@ const SignUpForm = () => {
       if (!res.ok) {
         throw new Error(data.error || "Something went wrong");
       }
+      toast.success("Verification code sent to your email!");
       router.push("/verifyEmail");
-    } catch (error) {
-      setError(error instanceof Error ? error.message : "Something went wrong");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong");
+      toast.error(error);
     } finally {
       setLoading(false);
     }

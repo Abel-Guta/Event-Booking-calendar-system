@@ -12,7 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { authFormSchema } from "@/lib/validations/validation";
+import { authFormSchema, resetFormSchema } from "@/lib/validations/validation";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -29,30 +29,43 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { login } from "@/lib/helpers/auth-helpers";
 import { toast } from "sonner";
+import ResetPasswordEmail from "@/lib/emails/reset-password-email";
 
-const SignInForm = () => {
+const PasswordResetForm = () => {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const form = useForm<z.infer<typeof authFormSchema>>({
-    resolver: zodResolver(authFormSchema),
+  const form = useForm<z.infer<typeof resetFormSchema>>({
+    resolver: zodResolver(resetFormSchema),
     defaultValues: {
       email: "",
-      password: "",
     },
   });
 
-  async function onSubmit(values: z.infer<typeof authFormSchema>) {
+  async function onSubmit(values: z.infer<typeof resetFormSchema>) {
     setLoading(true);
 
     try {
-      await login(values.email, values.password);
-      toast.success("Welcome back!");
-      router.push("/");
+      sessionStorage.setItem("verification-email", values.email);
+      sessionStorage.setItem("isPasswordReset", "true");
+      await fetch("api/resend", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          type: "verification",
+          email: values.email,
+          isPasswordReset: true,
+        }),
+      });
+
+      router.push("/verifyEmail");
+      toast.success("Password reset code sent to your email!");
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "An unexpected error occurred."
+        err instanceof Error ? err.message : "Failed to send reset email."
       );
       toast.error(error);
     } finally {
@@ -68,10 +81,10 @@ const SignInForm = () => {
         {/* **Card Header** - Contains the title and description */}
         <CardHeader className="text-center">
           <CardTitle className="text-3xl font-bold tracking-tight text-primary">
-            Welcome Back! 👋
+            Reset Password
           </CardTitle>
           <CardDescription className="text-sm text-muted-foreground">
-            Sign in to manage your events and calendar.
+            Enter yor email to recieve a code to reset your password.
           </CardDescription>
         </CardHeader>
 
@@ -98,56 +111,24 @@ const SignInForm = () => {
                 )}
               />
 
-              {/* **Password Field** */}
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Password</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="••••••••"
-                        type="password"
-                        value={field.value}
-                        onChange={field.onChange}
-                        className="h-10 transition duration-300 focus:border-primary"
-                      />
-                    </FormControl>
-                    <FormMessage />
-
-                    {/* **Forgot Password Link** - Added for better UX */}
-                    <div className="text-right">
-                      <Link
-                        href="/passwordReset"
-                        className="text-sm font-medium text-primary hover:text-primary/80 transition-colors"
-                      >
-                        Forgot password?
-                      </Link>
-                    </div>
-                  </FormItem>
-                )}
-              />
-
-              {/* **Submit Button** - Primary action button */}
               <Button
                 type="submit"
                 className="w-full h-10 tracking-wide font-semibold text-lg hover:shadow-lg transition-all duration-300"
               >
-                {loading ? "Signing In..." : "Sign In"}
+                {loading ? "Sending..." : "Send Reset Code"}
               </Button>
             </form>
           </Form>
 
           {/* **Sign Up Link** - Added for better UX */}
           <div className="mt-6 text-center text-sm">
-            Don't have an account?{" "}
+            Remember your password?{" "}
             <Link
-              href={"/signUp"}
+              href={"/signIn"}
               // Placeholder link
               className="font-semibold text-primary hover:text-primary/80 transition-colors"
             >
-              Sign Up
+              Sign In
             </Link>
           </div>
         </CardContent>
@@ -156,4 +137,4 @@ const SignInForm = () => {
   );
 };
 
-export default SignInForm;
+export default PasswordResetForm;

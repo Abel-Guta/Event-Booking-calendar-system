@@ -43,7 +43,9 @@ export async function updateSession(request: NextRequest) {
     (request.nextUrl.pathname === "/signIn" ||
       request.nextUrl.pathname === "/signUp")
   ) {
-    return NextResponse.redirect("/");
+    const url = request.nextUrl.clone();
+    url.pathname = "/";
+    return NextResponse.redirect(url);
   }
 
   if (
@@ -51,7 +53,8 @@ export async function updateSession(request: NextRequest) {
     !request.nextUrl.pathname.startsWith("/signIn") &&
     !request.nextUrl.pathname.startsWith("/signUp") &&
     !request.nextUrl.pathname.startsWith("/verifyEmail") &&
-    !request.nextUrl.pathname.startsWith("/api/resend")
+    !request.nextUrl.pathname.startsWith("/api/resend") &&
+    !request.nextUrl.pathname.startsWith("/passwordReset")
   ) {
     // no user, potentially respond by redirecting the user to the login page
     const url = request.nextUrl.clone();

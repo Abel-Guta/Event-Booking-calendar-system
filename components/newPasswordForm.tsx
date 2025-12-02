@@ -1,6 +1,6 @@
 "use client";
 
-import { z } from "zod";
+import { email, set, z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 
@@ -12,7 +12,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { authFormSchema } from "@/lib/validations/validation";
+import {
+  authFormSchema,
+  newPasswordFormSchema,
+} from "@/lib/validations/validation";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -26,30 +29,69 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { login } from "@/lib/helpers/auth-helpers";
+import { useEffect, useState } from "react";
+import { login, updatePassword } from "@/lib/helpers/auth-helpers";
 import { toast } from "sonner";
+import { createClient } from "@/utils/supabase/client";
 
-const SignInForm = () => {
+const NewPasswordForm = () => {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [email, setEmail] = useState<string>("");
 
-  const form = useForm<z.infer<typeof authFormSchema>>({
-    resolver: zodResolver(authFormSchema),
+  useEffect(() => {
+    const supabase = createClient();
+
+    async function checkSession() {
+      const { data } = await supabase.auth.getSession();
+      if (!data.session) {
+        router.push("/passwordReset");
+        return;
+      }
+      setEmail(data.session.user.email!);
+    }
+    checkSession();
+  }, [router]);
+
+  const form = useForm<z.infer<typeof newPasswordFormSchema>>({
+    resolver: zodResolver(newPasswordFormSchema),
     defaultValues: {
-      email: "",
       password: "",
     },
   });
 
-  async function onSubmit(values: z.infer<typeof authFormSchema>) {
+  async function onSubmit(values: z.infer<typeof newPasswordFormSchema>) {
     setLoading(true);
 
     try {
-      await login(values.email, values.password);
-      toast.success("Welcome back!");
-      router.push("/");
+      await updatePassword(values.password);
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from("Users")
+        .select("name")
+        .eq("email", email)
+        .single();
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      await fetch("/api/resend", {
+        method: "POST",
+        headers: {
+          "content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          type: "password-reset-confirmation",
+          email,
+          name: data.name,
+        }),
+      });
+
+      supabase.auth.signOut();
+      toast.success("Password updated successfully!");
+      router.push("/signIn");
+      sessionStorage.removeItem("isPasswordReset");
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "An unexpected error occurred."
@@ -68,10 +110,10 @@ const SignInForm = () => {
         {/* **Card Header** - Contains the title and description */}
         <CardHeader className="text-center">
           <CardTitle className="text-3xl font-bold tracking-tight text-primary">
-            Welcome Back! 👋
+            New Password
           </CardTitle>
           <CardDescription className="text-sm text-muted-foreground">
-            Sign in to manage your events and calendar.
+            Enter your new password below to secure your account.
           </CardDescription>
         </CardHeader>
 
@@ -79,24 +121,6 @@ const SignInForm = () => {
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               {/* **Email Field** */}
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email Address</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="you@example.com"
-                        type="email"
-                        {...field}
-                        className="h-10 transition duration-300 focus:border-primary"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
 
               {/* **Password Field** */}
               <FormField
@@ -115,16 +139,6 @@ const SignInForm = () => {
                       />
                     </FormControl>
                     <FormMessage />
-
-                    {/* **Forgot Password Link** - Added for better UX */}
-                    <div className="text-right">
-                      <Link
-                        href="/passwordReset"
-                        className="text-sm font-medium text-primary hover:text-primary/80 transition-colors"
-                      >
-                        Forgot password?
-                      </Link>
-                    </div>
                   </FormItem>
                 )}
               />
@@ -134,26 +148,14 @@ const SignInForm = () => {
                 type="submit"
                 className="w-full h-10 tracking-wide font-semibold text-lg hover:shadow-lg transition-all duration-300"
               >
-                {loading ? "Signing In..." : "Sign In"}
+                {loading ? "Updating Password..." : "Set New Password"}
               </Button>
             </form>
           </Form>
-
-          {/* **Sign Up Link** - Added for better UX */}
-          <div className="mt-6 text-center text-sm">
-            Don't have an account?{" "}
-            <Link
-              href={"/signUp"}
-              // Placeholder link
-              className="font-semibold text-primary hover:text-primary/80 transition-colors"
-            >
-              Sign Up
-            </Link>
-          </div>
         </CardContent>
       </Card>
     </div>
   );
 };
 
-export default SignInForm;
+export default NewPasswordForm;
