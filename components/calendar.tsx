@@ -6,17 +6,27 @@ import timeGridPlugin from "@fullcalendar/timegrid";
 
 export default function Calendar() {
   return (
-    <div className="p-4 bg-white rounded-xl shadow w-[800px] mx-auto mt-10 h-screen">
+    <div
+      className="p-4 bg-white rounded-xl shadow 
+     
+      max-w-[900px] 
+      
+       
+      h-auto
+    "
+    >
       <FullCalendar
         plugins={[dayGridPlugin, interactionPlugin, timeGridPlugin]}
         initialView="dayGridMonth"
+        editable
+        selectable
+        handleWindowResize
         height="auto"
-        editable={true}
-        selectable={true}
+        contentHeight="auto"
         headerToolbar={{
-          left: "prev,next",
+          left: "prev",
           center: "title",
-          right: "dayGridMonth,timeGridWeek,timeGridDay",
+          right: "next",
         }}
         events={[
           {

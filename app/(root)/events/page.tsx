@@ -3,10 +3,10 @@ import Dashboardhead from "@/components/dashboardhead";
 import EventList from "@/components/EventList";
 import Statcards from "@/components/statcards";
 
-export default function Home() {
+const Events = () => {
   return (
     <>
-      <Dashboardhead type="home" />
+      <Dashboardhead type="my events" />
 
       <div className="md:grid md:grid-cols-2  gap-10 mt-9 hidden lg:flex lg:justify-center">
         <Statcards title="Total Events" number={469} />
@@ -20,4 +20,6 @@ export default function Home() {
       </div>
     </>
   );
-}
+};
+
+export default Events;

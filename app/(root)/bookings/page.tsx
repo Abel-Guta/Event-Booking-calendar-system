@@ -2,11 +2,12 @@ import Calendar from "@/components/calendar";
 import Dashboardhead from "@/components/dashboardhead";
 import EventList from "@/components/EventList";
 import Statcards from "@/components/statcards";
+import React from "react";
 
-export default function Home() {
+const Bookings = () => {
   return (
     <>
-      <Dashboardhead type="home" />
+      <Dashboardhead type="my bookings" />
 
       <div className="md:grid md:grid-cols-2  gap-10 mt-9 hidden lg:flex lg:justify-center">
         <Statcards title="Total Events" number={469} />
@@ -20,4 +21,6 @@ export default function Home() {
       </div>
     </>
   );
-}
+};
+
+export default Bookings;

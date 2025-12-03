@@ -59,3 +59,10 @@ export const newPasswordFormSchema = z.object({
     .min(8, { message: "Password must be at least 8 characters" })
     .max(100, { message: "Password must be at most 100 characters." }),
 });
+export const eventformSchema = z.object({
+  eventname: z.string().min(2),
+  eventdescription: z.string().min(2),
+  eventcategory: z.string().min(1),
+  eventdate: z.date(),
+  eventtime: z.string(), // FIXED
+});
