@@ -64,5 +64,8 @@ export const eventformSchema = z.object({
   eventdescription: z.string().min(2),
   eventcategory: z.string().min(1),
   eventdate: z.date(),
-  eventtime: z.string(), // FIXED
+  eventtime: z.string(),
+  eventtickets: z.string(),
+
+  eventlocation: z.string().min(2, { message: "Location is needed" }),
 });

@@ -30,7 +30,7 @@ import { logout } from "@/lib/helpers/auth-helpers";
 
 const items = [
   { title: "Home", url: "/", icon: Home },
-  { title: "My Events", url: "/events", icon: Inbox },
+  { title: "My Events", url: "/my_events", icon: Inbox },
   { title: "My Bookings", url: "/bookings", icon: Ticket },
   { title: "Logout", url: "/signIn", icon: LogOut },
 ];

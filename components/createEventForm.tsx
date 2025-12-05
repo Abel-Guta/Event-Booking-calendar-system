@@ -1,5 +1,6 @@
 "use client";
 import * as React from "react";
+import { useState } from "react";
 import {
   Select,
   SelectContent,
@@ -28,8 +29,18 @@ import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { ChevronDownIcon } from "lucide-react";
 import { Calendar } from "./ui/calendar";
 import { eventformSchema } from "@/lib/validations/validation";
+import { createEvent } from "@/lib/helpers/event-helpers";
+import { createClient } from "@/utils/supabase/client";
 
-export function CreateEventForm({ modalOpen, setModalOpen }: any) {
+export function CreateEventForm({
+  modalOpen,
+  setModalOpen,
+}: {
+  modalOpen: boolean;
+  setModalOpen: (modalOpen: boolean) => void;
+}) {
+  const [loading, setLoading] = useState(false);
+
   const form = useForm<z.infer<typeof eventformSchema>>({
     resolver: zodResolver(eventformSchema),
     defaultValues: {
@@ -38,14 +49,27 @@ export function CreateEventForm({ modalOpen, setModalOpen }: any) {
       eventcategory: "Sports",
       eventdate: new Date(),
       eventtime: "10:30:00",
+      eventtickets: "0",
+      eventlocation: "",
     },
   });
 
-  function onSubmit(values: z.infer<typeof eventformSchema>) {}
+  async function onSubmit(values: z.infer<typeof eventformSchema>) {
+    setLoading(true);
+    const supabase = createClient();
+    const { error } = await supabase.auth.getUser();
+    if (error) console.log(error);
+
+    await createEvent(values);
+    setLoading(false);
+
+    setModalOpen(false);
+    form.reset();
+  }
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         {/* EVENT NAME */}
         <FormField
           control={form.control}
@@ -75,6 +99,41 @@ export function CreateEventForm({ modalOpen, setModalOpen }: any) {
               <FormControl>
                 <Input
                   placeholder="Enter the event description"
+                  {...field}
+                  className="focus-visible:border-orange-300 focus-visible:ring-orange-300 bg-white"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="eventlocation"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Event Location</FormLabel>
+              <FormControl>
+                <Input
+                  placeholder="Enter the event location"
+                  {...field}
+                  className="focus-visible:border-orange-300 focus-visible:ring-orange-300 bg-white"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="eventtickets"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Event Tickets</FormLabel>
+              <FormControl>
+                <Input
+                  placeholder="Enter the amount of Tickets available"
                   {...field}
                   className="focus-visible:border-orange-300 focus-visible:ring-orange-300 bg-white"
                 />
@@ -172,9 +231,10 @@ export function CreateEventForm({ modalOpen, setModalOpen }: any) {
           type="submit"
           className="w-full bg-linear-to-r from-red-500 via-orange-400 to-yellow-300"
         >
-          Create Event
+          {loading ? "Creating..." : "Create Event"}
         </Button>
       </form>
     </Form>
   );
 }
+// made the table and inputed some rls to it you were also makeing a server helper function for updating the table

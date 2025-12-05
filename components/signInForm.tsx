@@ -50,11 +50,8 @@ const SignInForm = () => {
       await login(values.email, values.password);
       toast.success("Welcome back!");
       router.push("/");
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "An unexpected error occurred."
-      );
-      toast.error(error);
+    } catch (err: any) {
+      toast.error(err.message ? err.message : "Error Signing In");
     } finally {
       setLoading(false);
     }

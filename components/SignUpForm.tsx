@@ -67,9 +67,8 @@ const SignUpForm = () => {
       }
       toast.success("Verification code sent to your email!");
       router.push("/verifyEmail");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
-      toast.error(error);
+    } catch (err: any) {
+      toast.error(err.message ? err.message : "Error Signing Up");
     } finally {
       setLoading(false);
     }

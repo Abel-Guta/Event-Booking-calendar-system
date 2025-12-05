@@ -1,10 +1,11 @@
 "use client";
 
 import { SearchIcon } from "lucide-react";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { CreateEventModal } from "./createEventModal";
+import { getAllEvents } from "@/lib/helpers/event-helpers";
 
 const Dashboardhead = ({
   type,
@@ -12,6 +13,7 @@ const Dashboardhead = ({
   type: "home" | "my events" | "my bookings";
 }) => {
   const [modalOpen, setModalOpen] = useState(false);
+
   return (
     <div className="flex flex-col  md:flex-row  md:justify-between items-center px-8 bg-white p-4 rounded-2xl shadow-4xl z-5">
       <div>
@@ -27,7 +29,7 @@ const Dashboardhead = ({
         </div>
         <div className={`w-full  ${type === "my events" ? "" : "hidden"}`}>
           <Button
-            className="bg-linear-to-r from-red-500 via-orange-400 to-yellow-300 px-8 w-full"
+            className="bg-linear-to-r from-red-500 via-orange-400 to-yellow-300 px-8 w-full active:scale-[0.97]"
             onClick={() => setModalOpen(!modalOpen)}
           >
             Create event
