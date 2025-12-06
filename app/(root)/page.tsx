@@ -15,7 +15,7 @@ export default function Home() {
         <Statcards title="Attendees" number={250} />
       </div>
       <div className="flex flex-col gap-5  md:gap-3 lg:flex-row mt-10">
-        <Calendar />
+        <Calendar type="home" />
         <EventList />
       </div>
     </>

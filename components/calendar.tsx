@@ -3,11 +3,12 @@ import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import timeGridPlugin from "@fullcalendar/timegrid";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { getAllEvents } from "@/lib/helpers/event-helpers";
 import { createClient } from "@/utils/supabase/client";
 import { useEventStore } from "@/utils/zustand/eventstore";
 import Link from "next/link";
+import { getCurrentUser } from "@/lib/helpers/auth-helpers";
 
 const categoryColors: Record<string, string> = {
   Music: "bg-purple-500/70",
@@ -36,16 +37,26 @@ export function formatTime(time: string) {
   return `${h}:${minute} ${ampm}`;
 }
 
-export default function Calendar() {
+export default function Calendar({
+  type,
+}: {
+  type: "home" | "my events" | "my bookings";
+}) {
   const { events, setEvents } = useEventStore();
+  const [user, setUser] = useState<string>();
 
   useEffect(() => {
     const supabase = createClient();
 
     // Initial fetch if events are empty
     async function fetchEvents() {
-      const allEvents = await getAllEvents();
-      setEvents(allEvents);
+      const [allevents, user] = await Promise.all([
+        getAllEvents(),
+        getCurrentUser(),
+      ]);
+
+      setUser(user.id);
+      setEvents(allevents);
     }
 
     if (events.length === 0) fetchEvents();
@@ -57,7 +68,7 @@ export default function Calendar() {
         "postgres_changes",
         { event: "*", schema: "public", table: "events" },
         (payload) => {
-          fetchEvents(); // Or update intelligently
+          fetchEvents();
         }
       )
       .subscribe();
@@ -65,15 +76,46 @@ export default function Calendar() {
     return () => {
       supabase.removeChannel(subscription);
     };
-  }, [events.length, setEvents]);
+  }, []);
 
-  const simpleEvents = events?.map((event) => ({
-    id: event.id.toString(),
-    title: event.eventname,
-    date: event.eventdate,
-  }));
+  let simpleEvents = [];
 
-  console.log(events);
+  switch (type) {
+    case "my events":
+      simpleEvents = events
+        ?.map((event) => ({
+          id: event.id.toString(),
+          title: event.eventname,
+          date: event.eventdate,
+          createdby: event.createdby,
+        }))
+        .filter((event) => event.createdby === user);
+
+      break;
+
+    case "my bookings":
+      simpleEvents = events
+        ?.map((event) => ({
+          id: event.id.toString(),
+          title: event.eventname,
+          date: event.eventdate,
+          attendees: event.attendees,
+        }))
+        .filter((event) => event.attendees?.includes(user!));
+
+      break;
+
+    default:
+      simpleEvents = events?.map((event) => ({
+        id: event.id.toString(),
+        title: event.eventname,
+        date: event.eventdate,
+      }));
+      break;
+  }
+
+  // add update btn functionality
+
   return (
     <div className="p-4 bg-white rounded-xl shadow max-w-[900px] h-auto">
       <FullCalendar

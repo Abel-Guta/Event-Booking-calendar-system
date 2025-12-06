@@ -1,5 +1,7 @@
 import EventDetail from "@/components/eventdetail";
 
+import { getevent } from "@/lib/helpers/event-helpers";
+
 interface EventDetailsProps {
   params: {
     id: string;
@@ -8,8 +10,9 @@ interface EventDetailsProps {
 
 const EventDetails = async ({ params }: EventDetailsProps) => {
   const { id } = await params;
-  console.log(id);
-  return <EventDetail id={id} />;
+  const eventdata = await getevent(id);
+
+  return <EventDetail event={eventdata} />;
 };
 
 export default EventDetails;
