@@ -101,7 +101,7 @@ export default function Calendar() {
           return (
             <Link href={`/events/${event.id}`}>
               <div
-                className={`rounded-2xl p-2 flex flex-col justify-between text-white shadow-lg ${bgClass} border border-white/20`}
+                className={`rounded-2xl p-2 flex flex-col justify-between text-white shadow-lg ${bgClass} border border-white/20 hover:scale-[1.2]`}
               >
                 <div className="text-xs font-bold uppercase opacity-80">
                   {originalEvent?.eventcategory}

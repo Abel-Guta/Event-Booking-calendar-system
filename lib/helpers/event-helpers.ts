@@ -49,3 +49,23 @@ export async function getAllEvents() {
     console.log(err);
   }
 }
+export async function getevent(id: string) {
+  try {
+    const supabase = createClient();
+
+    const { data, error } = await supabase
+      .from("events")
+      .select("*")
+      .eq("id", Number(id))
+      .single();
+
+    if (error) {
+      toast.error(error.message);
+      throw error;
+    }
+
+    return data;
+  } catch (err: any) {
+    console.log(err);
+  }
+}

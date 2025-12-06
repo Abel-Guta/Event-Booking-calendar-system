@@ -40,3 +40,10 @@ export async function updatePassword(password: string) {
   const { error } = await supabase.auth.updateUser({ password });
   if (error) throw new Error();
 }
+export async function getCurrentUser() {
+  const supabase = createClient();
+
+  const { data, error } = await supabase.auth.getUser();
+  if (error) throw new Error();
+  return data.user;
+}
